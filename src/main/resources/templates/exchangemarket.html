@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <title>Exchange Market</title>
+        
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    </head>
+    <body>
+        <h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]!</h1>
+        <table id="msg" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Greetings</th>
+                </tr>
+            </thead>
+            <tbody id="received">
+        	</tbody>
+        </table>
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="Sign Out"/>
+        </form>
+    </body>
+    <script>
+    var stompClient = null;
+    var lastmsg;
+    function connect() {
+        var socket = new SockJS('/exchangeWs');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/all', function (greeting) {
+                showGreeting(JSON.parse(greeting.body));
+            });
+        });
+    }
+    function showGreeting(message) {
+    	console.log(message)
+        $("#received").append("<tr><td>" + JSON.stringify(message) + "</td></tr>");
+    }
+
+    $(function () {
+        connect();
+    });
+    </script>
+</html>
